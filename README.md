@@ -28,6 +28,9 @@ Install the plugin from that marketplace:
 ```
 
 Then run it:
+```text
+/reload-plugins
+```
 
 ```text
 /command-catalog
