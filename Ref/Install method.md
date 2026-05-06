@@ -13,6 +13,13 @@ Install:
 Run:
 
 ```text
+/plugin install command-catalog@pjh720-slash-command-catalog
+/command-catalog
+```
+
+Or, after installing, run:
+
+```text
 /command-catalog
 ```
 

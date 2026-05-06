@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-marketplace.json",
+  "name": "pjh720-slash-command-catalog",
+  "description": "Plugins published from PJH720/slash-command-catalog.",
+  "owner": {
+    "name": "PJH720"
+  },
+  "plugins": [
+    {
+      "name": "command-catalog",
+      "source": "./",
+      "description": "Generate a catalog report of available slash commands and MCP configuration in the current working directory."
+    }
+  ]
+}
+
