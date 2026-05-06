@@ -6,16 +6,15 @@ Generate a report of the slash commands you can actually use in your current env
 
 English | [简体中文](docs/i18n/README.zh-CN.md) | [繁體中文](docs/i18n/README.zh-TW.md) | [日本語](docs/i18n/README.ja.md) | [Español](docs/i18n/README.es.md) | [Français](docs/i18n/README.fr.md) | [Deutsch](docs/i18n/README.de.md) | [Português(BR)](docs/i18n/README.pt-BR.md) | [Italiano](docs/i18n/README.it.md) | [Türkçe](docs/i18n/README.tr.md) | [Bahasa Indonesia](docs/i18n/README.id.md) | [Tiếng Việt](docs/i18n/README.vi.md) | [ไทย](docs/i18n/README.th.md) | [Polski](docs/i18n/README.pl.md) | [Nederlands](docs/i18n/README.nl.md) | [Svenska](docs/i18n/README.sv.md) | [Русский](docs/i18n/README.ru.md) | [Українська](docs/i18n/README.uk.md) | [한국어](docs/i18n/README.ko.md) | [العربية](docs/i18n/README.ar.md) | [עברית](docs/i18n/README.he.md) | [हिन्दी](docs/i18n/README.hi.md)
 
-## Outputs
+## When to use it
 
-By default, the command writes these files to the current working directory:
+- You keep forgetting what `/commands` exist in a project.
+- You want a quick “capabilities manifest” an agent can read without guessing.
+- You suspect shadowing/duplication (same name defined in multiple places).
 
-- **Human-friendly**: `./CommandCatalog.html` (single searchable page)
-- **Agent-friendly**: `./llms.txt` and `./llms-full.txt` (no HTML parsing required)
+## Demo
 
-Optional (if enabled by your environment/plugin setup):
-
-- **Human-friendly (expanded)**: `./llm-full.html`
+<video src="docs/CommandCatalog.webm" controls muted playsinline style="max-width: 100%;"></video>
 
 ## Quickstart (Claude Code plugin)
 
@@ -43,13 +42,18 @@ Then run it:
 /command-catalog
 ```
 
-## When to use it
+## Outputs
 
-- You keep forgetting what `/commands` exist in a project.
-- You want a quick “capabilities manifest” an agent can read without guessing.
-- You suspect shadowing/duplication (same name defined in multiple places).
+By default, the command writes these files to the current working directory:
 
-## What it scans 
+- **Human-friendly**: `./CommandCatalog.html` (single searchable page)
+- **Agent-friendly**: `./llms.txt` and `./llms-full.txt` (no HTML parsing required)
+
+Optional (if enabled by your environment/plugin setup):
+
+- **Human-friendly (expanded)**: `./llm-full.html`
+
+## What it scans
 
 - `.claude/skills/` (SKILL.md)
 - `.claude/commands/` (markdown command files)
