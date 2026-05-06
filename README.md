@@ -27,10 +27,11 @@ Install the plugin from that marketplace:
 /plugin install command-catalog@pjh720-slash-command-catalog
 ```
 
-Then run it:
 ```text
 /reload-plugins
 ```
+
+Then run it:
 
 ```text
 /command-catalog
