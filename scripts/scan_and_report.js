@@ -2,11 +2,15 @@ import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 /**
- * v1 목적:
- * - 현재 작업 디렉터리(CWD)를 "프로젝트 루트"로 간주
- * - 제한된 몇몇 경로만 스캔해서 slash-command 인벤토리를 수집
- * - contracts/report-schema.md + specs/001-summarize-command/data-model.md 포맷으로
- *   summarize-report.html, llms.txt, llms-full.txt 를 CWD에 생성
+ * Zero-install plugin runner (Node.js ESM only).
+ *
+ * Test locally without npm:
+ *   node /absolute/path/to/scripts/scan_and_report.js
+ *
+ * Behavior:
+ * - Uses process.cwd() as the target project root.
+ * - Scans a small set of known locations under that project.
+ * - Writes summarize-report.html, llms.txt, llms-full.txt into the CWD.
  */
 
 const OUTPUT_FILES = {
@@ -69,9 +73,8 @@ function parseFrontmatter(md) {
 }
 
 function inferSourceCategory(relPath) {
-  if (relPath.startsWith(".specify/")) return "spec-kit";
-  if (relPath.startsWith(".github/")) return "core";
   if (relPath.startsWith(".claude/")) return "local";
+  if (relPath.startsWith(".mcp.json")) return "local";
   return "unknown";
 }
 
@@ -114,7 +117,7 @@ async function safeReadText(absPath, warnings, relLabel) {
     return await readFile(absPath, "utf8");
   } catch (err) {
     const reason = isPermissionError(err) ? "permission denied" : "read failed";
-    warnings.push(`읽기 실패: ${relLabel} (${reason})`);
+    warnings.push(`Read failed: ${relLabel} (${reason})`);
     return null;
   }
 }
@@ -124,7 +127,7 @@ async function safeReadDir(absDir, warnings, relLabel) {
     return await readdir(absDir, { withFileTypes: true });
   } catch (err) {
     const reason = isPermissionError(err) ? "permission denied" : "readdir failed";
-    warnings.push(`읽기 실패: ${relLabel} (${reason})`);
+    warnings.push(`Read failed: ${relLabel} (${reason})`);
     return null;
   }
 }
@@ -180,7 +183,7 @@ function renderHtml(records, generatedAt) {
     .join("\n");
 
   return `<!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -317,7 +320,7 @@ async function collectCommandRecords(projectRoot) {
         const json = JSON.parse(txt);
         const servers = json && typeof json === "object" ? json.mcpServers : null;
         if (!servers || typeof servers !== "object") {
-          warnings.push("파싱 실패: .mcp.json (mcpServers 키를 찾지 못했습니다)");
+          warnings.push('Parse failed: .mcp.json (missing "mcpServers")');
         } else {
           for (const [serverName, cfg] of Object.entries(servers)) {
             const cmd = cfg && typeof cfg === "object" && "command" in cfg ? String(cfg.command) : "";
@@ -339,7 +342,7 @@ async function collectCommandRecords(projectRoot) {
           }
         }
       } catch {
-        warnings.push("파싱 실패: .mcp.json (JSON parse error)");
+        warnings.push("Parse failed: .mcp.json (JSON parse error)");
       }
     }
   }
