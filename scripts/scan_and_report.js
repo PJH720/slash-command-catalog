@@ -1,10 +1,6 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-// #region agent log
-fetch('http://127.0.0.1:7524/ingest/29f7cd56-8f70-4539-a346-88e56d7e97b1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'f11625'},body:JSON.stringify({sessionId:'f11625',runId:'pre-fix',hypothesisId:'H1',location:'scripts/scan_and_report.js:3',message:'runner_start',data:{cwd:process.cwd(),node:process.version},timestamp:Date.now()})}).catch(()=>{});
-// #endregion
-
 /**
  * Zero-install plugin runner (Node.js ESM only).
  *
