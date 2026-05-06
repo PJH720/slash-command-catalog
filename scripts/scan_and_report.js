@@ -148,6 +148,23 @@ async function walkDir(absRoot, relRoot, warnings, onFile) {
   }
 }
 
+async function walkDirWithLimits(absRoot, relRoot, warnings, { maxDepth }, onFile, depth = 0) {
+  if (depth > maxDepth) return;
+  const entries = await safeReadDir(absRoot, warnings, relRoot);
+  if (!entries) return;
+
+  for (const e of entries) {
+    const nextAbs = path.join(absRoot, e.name);
+    const nextRel = path.posix.join(relRoot, e.name);
+    if (e.isDirectory()) {
+      await walkDirWithLimits(nextAbs, nextRel, warnings, { maxDepth }, onFile, depth + 1);
+      continue;
+    }
+    if (!e.isFile()) continue;
+    await onFile(nextAbs, nextRel);
+  }
+}
+
 function applyConflictDetection(records) {
   const byName = new Map();
   for (const r of records) {
@@ -269,22 +286,47 @@ function renderLlmsFull(records, meta) {
   ].join("\n");
 }
 
+function getScanDirs(projectRoot) {
+  // Primary mode: scan project-local `.claude/*` under the current working directory.
+  // Fallback mode: if the CWD itself is a `.claude` directory, scan its direct children.
+  const base = path.basename(projectRoot);
+  if (base === ".claude") {
+    return { mode: "dot-claude-root", dirs: ["skills", "commands", "plugins"] };
+  }
+  return {
+    mode: "project-root",
+    dirs: [".claude/skills", ".claude/commands", ".claude/plugins"],
+  };
+}
+
 async function collectCommandRecords(projectRoot) {
   const warnings = [];
   const records = [];
 
-  const scanDirs = [
-    ".claude/skills",
-    ".claude/commands",
-    ".claude/plugins",
-  ];
+  const scan = getScanDirs(projectRoot);
+  const scanDirs = scan.dirs;
 
   for (const rel of scanDirs) {
     const abs = path.join(projectRoot, rel);
     if (!(await fileExists(abs))) continue;
 
-    await walkDir(abs, rel.replaceAll(path.sep, "/"), warnings, async (absPath, relPathPosix) => {
-      if (!relPathPosix.toLowerCase().endsWith(".md")) return;
+    const relPosix = rel.replaceAll(path.sep, "/");
+
+    // When scanning a global `~/.claude` folder, `plugins/` can be huge.
+    // Limit to likely skill entrypoints to prevent OOM / "Invalid string length".
+    const shouldLimitPluginScan = scan.mode === "dot-claude-root" && relPosix === "plugins";
+
+    const walker = shouldLimitPluginScan
+      ? async (onFile) => walkDirWithLimits(abs, relPosix, warnings, { maxDepth: 5 }, onFile)
+      : async (onFile) => walkDir(abs, relPosix, warnings, onFile);
+
+    await walker(async (absPath, relPathPosix) => {
+      const relLower = relPathPosix.toLowerCase();
+      if (shouldLimitPluginScan) {
+        if (!relLower.endsWith("/skill.md")) return;
+      } else {
+        if (!relLower.endsWith(".md")) return;
+      }
 
       const contents = await safeReadText(absPath, warnings, relPathPosix);
       if (contents == null) return;
