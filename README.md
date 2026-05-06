@@ -12,7 +12,7 @@ English | [简体中文](docs/i18n/README.zh-CN.md) | [繁體中文](docs/i18n/R
 - You want a quick “capabilities manifest” an agent can read without guessing.
 - You suspect shadowing/duplication (same name defined in multiple places).
 
-<video src="docs/CommandCatalog.webm" autoplay="autoplay" muted="muted" loop="loop" width="100%"></video>
+<video src="docs/commandcatalog.webm" autoplay="autoplay" muted="muted" loop="loop" width="100%"></video>
 
 ## Quickstart (Claude Code plugin)
 
