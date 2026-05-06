@@ -1,4 +1,5 @@
-import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, stat, writeFile } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
 /**
@@ -392,11 +393,135 @@ async function collectCommandRecords(projectRoot) {
   return { records, warnings, scanDirs: scanDirs.map((d) => path.posix.normalize(d)) };
 }
 
+async function uniqueExistingRoots(roots) {
+  const out = [];
+  const seen = new Set();
+  for (const r of roots) {
+    if (!r) continue;
+    if (!(await fileExists(r))) continue;
+    const normalized = path.resolve(r);
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
+}
+
+async function collectFromRoots(roots) {
+  const combinedRecords = [];
+  const combinedWarnings = [];
+  const combinedPatterns = [];
+
+  for (const root of roots) {
+    const { records, warnings, scanDirs } = await collectCommandRecords(root);
+    combinedRecords.push(
+      ...records.map((r) => ({
+        ...r,
+        source: { ...r.source, root },
+      })),
+    );
+    combinedWarnings.push(...warnings.map((w) => `[${root}] ${w}`));
+    combinedPatterns.push(...scanDirs.map((p) => `${root}:${p}`));
+  }
+
+  return { records: combinedRecords, warnings: combinedWarnings, patterns: combinedPatterns };
+}
+
+function commandFromSkillPath(relPath) {
+  const m = relPath.match(/(?:^|\/)(?:\.claude\/skills|skills)\/([^/]+)\/SKILL\.md$/i);
+  return m?.[1] ? m[1] : null;
+}
+
+function renderCommandCatalogHtml(entries, generatedAt) {
+  const rows = entries
+    .slice()
+    .sort((a, b) => a.path.localeCompare(b.path))
+    .map((e) => {
+      return `
+        <tr>
+          <td class="mono">${escapeHtml("/" + e.command)}</td>
+          <td>${escapeHtml(e.description ?? "")}</td>
+          <td class="mono">${escapeHtml(e.path)}</td>
+          <td class="mono">${escapeHtml(e.sourceRoot)}</td>
+        </tr>
+      `;
+    })
+    .join("\n");
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CommandCatalog</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; margin: 24px; }
+      h1 { margin: 0 0 8px; font-size: 20px; }
+      .muted { opacity: 0.75; font-size: 12px; margin-bottom: 16px; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th, td { text-align: left; border-bottom: 1px solid rgba(127,127,127,0.35); padding: 10px 8px; vertical-align: top; }
+      th { position: sticky; top: 0; background: Canvas; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+      td.mono { white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h1>CommandCatalog</h1>
+    <div class="muted">Generated: ${escapeHtml(generatedAt)} · Commands: ${entries.length}</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Command</th>
+          <th>Description</th>
+          <th>Path</th>
+          <th>SourceRoot</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+  </body>
+</html>`;
+}
+
+async function moveIfExists(srcAbs, destDirAbs, baseName, suffix) {
+  if (!(await fileExists(srcAbs))) return null;
+  await mkdir(destDirAbs, { recursive: true });
+  const ext = path.extname(baseName);
+  const stem = ext ? baseName.slice(0, -ext.length) : baseName;
+  const safeSuffix = suffix ? `-${suffix}` : "";
+  let destAbs = path.join(destDirAbs, `${stem}${safeSuffix}${ext}`);
+  if (await fileExists(destAbs)) {
+    destAbs = path.join(destDirAbs, `${stem}${safeSuffix}-${Date.now()}${ext}`);
+  }
+  await rename(srcAbs, destAbs);
+  return destAbs;
+}
+
 async function main() {
   const projectRoot = process.cwd();
   const generatedAt = toIsoNow();
 
-  const { records: rawRecords, warnings, scanDirs } = await collectCommandRecords(projectRoot);
+  const roots = await uniqueExistingRoots([projectRoot, path.join(os.homedir(), ".claude")]);
+
+  // LLM-facing reports live under report_for_llm/.
+  const llmDir = path.join(projectRoot, "report_for_llm");
+  await mkdir(llmDir, { recursive: true });
+  const backupSuffix = generatedAt.replaceAll(":", "").replaceAll(".", "");
+
+  // Migrate any legacy files from project root into report_for_llm/.
+  await moveIfExists(path.join(projectRoot, OUTPUT_FILES.html), llmDir, OUTPUT_FILES.html, "");
+  await moveIfExists(path.join(projectRoot, OUTPUT_FILES.llms), llmDir, OUTPUT_FILES.llms, "");
+  await moveIfExists(path.join(projectRoot, OUTPUT_FILES.llmsFull), llmDir, OUTPUT_FILES.llmsFull, "");
+
+  // Backup existing report_for_llm outputs (timestamped) before overwriting.
+  await moveIfExists(path.join(llmDir, OUTPUT_FILES.html), llmDir, OUTPUT_FILES.html, backupSuffix);
+  await moveIfExists(path.join(llmDir, OUTPUT_FILES.llms), llmDir, OUTPUT_FILES.llms, backupSuffix);
+  await moveIfExists(path.join(llmDir, OUTPUT_FILES.llmsFull), llmDir, OUTPUT_FILES.llmsFull, backupSuffix);
+
+  const { records: rawRecords, warnings, patterns } = await collectFromRoots(roots);
   const records = applyConflictDetection(rawRecords);
 
   await mkdir(projectRoot, { recursive: true });
@@ -405,18 +530,35 @@ async function main() {
   const llms = renderLlmsQuick(records);
   const llmsFull = renderLlmsFull(records, {
     generatedAt,
-    scanRoots: [projectRoot],
-    patterns: scanDirs,
+    scanRoots: roots,
+    patterns,
     warnings,
   });
 
-  const htmlPath = path.join(projectRoot, OUTPUT_FILES.html);
-  const llmsPath = path.join(projectRoot, OUTPUT_FILES.llms);
-  const llmsFullPath = path.join(projectRoot, OUTPUT_FILES.llmsFull);
+  const htmlPath = path.join(llmDir, OUTPUT_FILES.html);
+  const llmsPath = path.join(llmDir, OUTPUT_FILES.llms);
+  const llmsFullPath = path.join(llmDir, OUTPUT_FILES.llmsFull);
 
   await writeFile(htmlPath, html, "utf8");
   await writeFile(llmsPath, llms + "\n", "utf8");
   await writeFile(llmsFullPath, llmsFull, "utf8");
+
+  const commandEntries = records
+    .map((r) => {
+      const command = commandFromSkillPath(r.source.path);
+      if (!command) return null;
+      return {
+        command,
+        description: r.summary ?? "",
+        path: r.source.path,
+        sourceRoot: r.source.root ?? "",
+      };
+    })
+    .filter(Boolean);
+
+  const commandCatalogHtml = renderCommandCatalogHtml(commandEntries, generatedAt);
+  const commandCatalogPath = path.join(projectRoot, "CommandCatalog.html");
+  await writeFile(commandCatalogPath, commandCatalogHtml, "utf8");
 
   process.stdout.write(
     [
@@ -424,6 +566,7 @@ async function main() {
       `- HTML: ${htmlPath}`,
       `- llms.txt: ${llmsPath}`,
       `- llms-full.txt: ${llmsFullPath}`,
+      `- CommandCatalog.html: ${commandCatalogPath}`,
       warnings.length ? `- Warnings: ${warnings.length}` : "",
       "",
     ]

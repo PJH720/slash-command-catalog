@@ -23,6 +23,13 @@ coverage/
 CLAUDE.md
 AGENTS.md
 
+# Generated reports (local artifacts)
+summarize-report.html
+llms.txt
+llms-full.txt
+CommandCatalog.html
+report_for_llm/
+
 # Keep only the tracked install note under Ref/
 Ref/*
 !Ref/Install method.md
