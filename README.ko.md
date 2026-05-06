@@ -15,6 +15,21 @@ CLI 실행 시 지정한 출력 디렉터리에 아래 파일들이 생성됩니
 - `llms.txt`: “한 줄 = 한 명령어” 형태의 초경량 카탈로그
 - `llms-full.txt`: 구조화된 상세 카탈로그(에이전트가 읽기 좋음)
 
+## 빠른 시작(Claude Code 플러그인, 권장)
+
+Claude Code에서 이 레포를 플러그인으로 설치한 뒤, 슬래시 커맨드로 실행합니다.
+
+```text
+/plugin marketplace add PJH720/slash-command-catalog
+/summarize-command
+```
+
+기본 출력은 **현재 디렉터리**입니다:
+
+- `./summarize-report.html`
+- `./llms.txt`
+- `./llms-full.txt`
+
 ## 빠른 시작(로컬 개발)
 
 ```bash
