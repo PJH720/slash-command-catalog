@@ -36,21 +36,34 @@ function matchesPattern(relPath: string, patterns: string[]): boolean {
 
 export async function discoverFiles(
   options: DiscoverOptions,
-): Promise<DiscoveredFile[]> {
+): Promise<{ files: DiscoveredFile[]; warnings: string[] }> {
   const results: DiscoveredFile[] = [];
+  const warnings: string[] = [];
+
+  const dirPrefixPatterns = options.patterns.filter((p) => p.endsWith("/"));
+  const needsFullWalk = options.patterns.some((p) => !p.endsWith("/"));
 
   for (const root of options.scanRoots) {
-    await walk(root);
+    // If the user only provided directory-prefix patterns, avoid a full repo walk
+    // and only traverse those subtrees.
+    if (dirPrefixPatterns.length > 0) {
+      for (const p of dirPrefixPatterns) {
+        await walk(path.join(root, p));
+      }
+    }
+    if (needsFullWalk) {
+      await walk(root);
+    }
   }
 
-  return results;
+  return { files: results, warnings };
 
   async function walk(currentAbs: string): Promise<void> {
     let entries: import("node:fs").Dirent[];
     try {
       entries = await readdir(currentAbs, { withFileTypes: true });
     } catch {
-      // Ignore unreadable directories. Warnings are handled at a higher layer.
+      warnings.push(`읽기 실패: ${path.relative(options.repoRoot, currentAbs)}`);
       return;
     }
 

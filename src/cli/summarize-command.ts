@@ -53,10 +53,14 @@ async function main(): Promise<void> {
     patterns: [
       ".github/agents/",
       ".github/prompts/",
+      ".claude/skills/",
+      ".claude/commands/",
+      ".claude/plugins/",
     ],
   };
 
-  const files = await discoverFiles(discoverOptions);
+  const { files, warnings: discoverWarnings } = await discoverFiles(discoverOptions);
+  warnings.push(...discoverWarnings);
   const parsed: Omit<CommandRecord, "conflicts">[] = [];
 
   for (const f of files) {
@@ -70,7 +74,11 @@ async function main(): Promise<void> {
   const records = applyConflictDetection(parsed);
 
   const htmlPath = await writeHtmlReport(outAbs, records);
-  const { llmsPath, llmsFullPath } = await writeLlmsReports(outAbs, records);
+  const { llmsPath, llmsFullPath } = await writeLlmsReports(outAbs, records, {
+    scanRoots: discoverOptions.scanRoots,
+    patterns: discoverOptions.patterns,
+    warnings,
+  });
 
   const artifacts: ReportArtifacts = {
     htmlPath,

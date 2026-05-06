@@ -10,6 +10,7 @@ type ParseResult = {
 function inferSourceCategory(relPath: string): SourceCategory {
   if (relPath.startsWith(".specify/")) return "spec-kit";
   if (relPath.startsWith(".github/")) return "core";
+  if (relPath.startsWith(".claude/")) return "local";
   if (relPath.startsWith("src/")) return "local";
   return "unknown";
 }
@@ -17,22 +18,43 @@ function inferSourceCategory(relPath: string): SourceCategory {
 function inferKind(relPath: string): CommandKind {
   if (relPath.startsWith(".github/agents/")) return "slash-command";
   if (relPath.startsWith(".github/prompts/")) return "prompt";
+  if (relPath.startsWith(".claude/skills/")) return "slash-command";
+  if (relPath.startsWith(".claude/commands/")) return "slash-command";
+  if (relPath.startsWith(".claude/rules/")) return "rule";
   if (relPath.startsWith(".cursor/")) return "rule";
   return "unknown";
 }
 
+function parseFrontmatter(contents: string): { name: string | null; description: string | null } {
+  const fm = contents.match(/^---\s*\n([\s\S]*?)\n---\s*\n/m);
+  if (!fm?.[1]) return { name: null, description: null };
+  const block = fm[1];
+
+  const get = (key: string): string | null => {
+    const m = block.match(new RegExp(`^\\s*${key}:\\s*(.+?)\\s*$`, "m"));
+    if (!m?.[1]) return null;
+    return m[1].trim().replace(/^["']|["']$/g, "");
+  };
+
+  return { name: get("name"), description: get("description") };
+}
+
 function parseNameFromPath(relPath: string): string {
+  if (relPath.endsWith("/SKILL.md")) {
+    // `.claude/skills/foo/SKILL.md` -> foo
+    const parts = relPath.split("/");
+    const idx = parts.lastIndexOf("skills");
+    const dir = idx >= 0 ? parts[idx + 1] : null;
+    if (dir) return dir;
+  }
   const base = relPath.split("/").at(-1) ?? relPath;
   return base.replace(/\.md$/i, "");
 }
 
 function parseSummaryFromMarkdown(contents: string): string | null {
   // Heuristic: if frontmatter has description: "...", use it.
-  const fm = contents.match(/^---\s*\n([\s\S]*?)\n---\s*\n/m);
-  if (fm?.[1]) {
-    const desc = fm[1].match(/^\s*description:\s*["']?(.+?)["']?\s*$/m);
-    if (desc?.[1]) return desc[1].trim();
-  }
+  const fm = parseFrontmatter(contents);
+  if (fm.description) return fm.description;
 
   // Otherwise use the first non-heading non-empty line as a summary.
   const lines = contents.split("\n").map((l) => l.trim());
@@ -65,9 +87,12 @@ export async function parseCommandFile(
     };
   }
 
+  const fm = parseFrontmatter(contents);
+  const name = fm.name ?? parseNameFromPath(relPath);
+
   return {
     record: {
-      name: parseNameFromPath(relPath),
+      name,
       kind: inferKind(relPath),
       summary: parseSummaryFromMarkdown(contents),
       source: { category: inferSourceCategory(relPath), path: relPath },

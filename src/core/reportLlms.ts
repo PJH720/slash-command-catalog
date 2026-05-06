@@ -6,6 +6,7 @@ import type { CommandRecord } from "../types.js";
 export async function writeLlmsReports(
   outDir: string,
   records: CommandRecord[],
+  meta?: { scanRoots?: string[]; patterns?: string[]; warnings?: string[] },
 ): Promise<{ llmsPath: string; llmsFullPath: string }> {
   await mkdir(outDir, { recursive: true });
 
@@ -26,9 +27,14 @@ export async function writeLlmsReports(
     .map((r) => `- ${r.name}\n  - ${[r.source.path, ...r.conflicts].join("\n  - ")}`)
     .join("\n");
 
+  const scanRoots = meta?.scanRoots ?? [];
+  const patterns = meta?.patterns ?? [];
+  const warnings = meta?.warnings ?? [];
+
   const full = [
     "Overview",
     `Generated: ${new Date().toISOString()}`,
+    scanRoots.length ? `ScanRoots: ${scanRoots.join(", ")}` : "ScanRoots: (unknown)",
     `Commands: ${records.length}`,
     "",
     "Commands",
@@ -45,6 +51,12 @@ export async function writeLlmsReports(
     "",
     "Conflicts",
     conflicts || "(none)",
+    "",
+    "ScanSummary",
+    scanRoots.length ? `Roots: ${scanRoots.join(", ")}` : "Roots: (unknown)",
+    patterns.length ? `Patterns: ${patterns.join(", ")}` : "Patterns: (unknown)",
+    `Warnings: ${warnings.length}`,
+    ...warnings.map((w) => `- ${w}`),
     "",
   ].join("\n");
 

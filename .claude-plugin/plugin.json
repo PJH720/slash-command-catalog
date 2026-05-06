@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "summarize-command",
+  "version": "1.0.0",
+  "description": "Scan available slash commands and MCP configuration in the current project and generate summarize-report.html, llms.txt, and llms-full.txt."
+}
+
