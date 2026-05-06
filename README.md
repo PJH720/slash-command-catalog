@@ -4,28 +4,28 @@ Generate a report of the slash commands you can actually use in your current env
 
 ## Languages
 
-- English (this file)
-- Korean: `README.ko.md`
-- Japanese: `README.ja.md`
-- Chinese (Simplified): `README.zh-CN.md`
-- Chinese (Traditional): `README.zh-TW.md`
-- Spanish: `README.es.md`
-- French: `README.fr.md`
-- German: `README.de.md`
-- Portuguese (Brazil): `README.pt-BR.md`
-- Italian: `README.it.md`
-- Turkish: `README.tr.md`
-- Indonesian: `README.id.md`
-- Vietnamese: `README.vi.md`
-- Thai: `README.th.md`
-- Polish: `README.pl.md`
-- Dutch: `README.nl.md`
-- Swedish: `README.sv.md`
-- Russian: `README.ru.md`
-- Ukrainian: `README.uk.md`
-- Arabic: `README.ar.md`
-- Hebrew: `README.he.md`
-- Hindi: `README.hi.md`
+- Translations live under `docs/i18n/`:
+  - Korean: `docs/i18n/README.ko.md`
+  - Japanese: `docs/i18n/README.ja.md`
+  - Chinese (Simplified): `docs/i18n/README.zh-CN.md`
+  - Chinese (Traditional): `docs/i18n/README.zh-TW.md`
+  - Spanish: `docs/i18n/README.es.md`
+  - French: `docs/i18n/README.fr.md`
+  - German: `docs/i18n/README.de.md`
+  - Portuguese (Brazil): `docs/i18n/README.pt-BR.md`
+  - Italian: `docs/i18n/README.it.md`
+  - Turkish: `docs/i18n/README.tr.md`
+  - Indonesian: `docs/i18n/README.id.md`
+  - Vietnamese: `docs/i18n/README.vi.md`
+  - Thai: `docs/i18n/README.th.md`
+  - Polish: `docs/i18n/README.pl.md`
+  - Dutch: `docs/i18n/README.nl.md`
+  - Swedish: `docs/i18n/README.sv.md`
+  - Russian: `docs/i18n/README.ru.md`
+  - Ukrainian: `docs/i18n/README.uk.md`
+  - Arabic: `docs/i18n/README.ar.md`
+  - Hebrew: `docs/i18n/README.he.md`
+  - Hindi: `docs/i18n/README.hi.md`
 
 This plugin generates a small set of **stable artifacts** that you can skim as a human or feed to an agent:
 
