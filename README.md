@@ -14,7 +14,7 @@ English | [简体中文](docs/i18n/README.zh-CN.md) | [繁體中文](docs/i18n/R
 
 ## Demo
 
-<video src="docs/CommandCatalog.webm" controls muted playsinline style="max-width: 100%;"></video>
+<video src="docs/CommandCatalog.webm" autoplay="autoplay" muted="muted" loop="loop" width="100%"></video>
 
 ## Quickstart (Claude Code plugin)
 
