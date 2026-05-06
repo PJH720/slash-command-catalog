@@ -435,18 +435,13 @@ function commandFromSkillPath(relPath) {
 }
 
 function renderCommandCatalogHtml(entries, generatedAt) {
-  const commandList = Array.from(new Set(entries.map((e) => `/${e.command}`))).sort((a, b) =>
-    a.localeCompare(b),
-  );
-  const commandListText = commandList.join("\n");
-
   const rows = entries
     .slice()
     .sort((a, b) => a.path.localeCompare(b.path))
     .map((e) => {
       return `
         <tr>
-          <td class="mono">${escapeHtml("/" + e.command)}</td>
+          <td><code class="mono">${escapeHtml("/" + e.command)}</code></td>
           <td>${escapeHtml(e.description ?? "")}</td>
           <td class="mono">${escapeHtml(e.path)}</td>
           <td class="mono">${escapeHtml(e.sourceRoot)}</td>
@@ -467,8 +462,6 @@ function renderCommandCatalogHtml(entries, generatedAt) {
       body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; margin: 24px; }
       h1 { margin: 0 0 8px; font-size: 20px; }
       .muted { opacity: 0.75; font-size: 12px; margin-bottom: 16px; }
-      .toolbar { display: flex; align-items: center; gap: 10px; margin: 12px 0 16px; }
-      pre { margin: 0; padding: 12px; border: 1px solid rgba(127,127,127,0.35); border-radius: 8px; background: color-mix(in oklab, Canvas 92%, CanvasText 8%); overflow: auto; }
       button { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(127,127,127,0.35); background: Canvas; cursor: pointer; }
       button:active { transform: translateY(1px); }
       table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -481,11 +474,6 @@ function renderCommandCatalogHtml(entries, generatedAt) {
   <body>
     <h1>CommandCatalog</h1>
     <div class="muted">Generated: ${escapeHtml(generatedAt)} · Commands: ${entries.length}</div>
-    <div class="toolbar">
-      <button id="copyAllBtn" type="button">Copy all commands</button>
-      <span class="muted">One command per line</span>
-    </div>
-    <pre class="mono" id="commandBlock">${escapeHtml(commandListText)}</pre>
     <table>
       <thead>
         <tr>
@@ -502,24 +490,14 @@ function renderCommandCatalogHtml(entries, generatedAt) {
     </table>
     <script>
       (function () {
-        function setTempLabel(btn, text) {
-          var prev = btn.textContent;
-          btn.textContent = text;
-          setTimeout(function () { btn.textContent = prev; }, 800);
-        }
         async function copyText(text, btn) {
           try {
             await navigator.clipboard.writeText(text);
-            if (btn) setTempLabel(btn, "Copied");
+            if (btn) btn.textContent = "Copied";
           } catch (e) {
-            if (btn) setTempLabel(btn, "Failed");
+            if (btn) btn.textContent = "Failed";
           }
         }
-        var block = document.getElementById("commandBlock");
-        var copyAllBtn = document.getElementById("copyAllBtn");
-        copyAllBtn.addEventListener("click", function () {
-          copyText(block.textContent, copyAllBtn);
-        });
         document.addEventListener("click", function (ev) {
           var target = ev.target;
           if (!(target instanceof HTMLElement)) return;
