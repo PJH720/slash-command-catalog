@@ -274,8 +274,6 @@ async function collectCommandRecords(projectRoot) {
     ".claude/skills",
     ".claude/commands",
     ".claude/plugins",
-    ".github/agents",
-    ".github/prompts",
   ];
 
   for (const rel of scanDirs) {
