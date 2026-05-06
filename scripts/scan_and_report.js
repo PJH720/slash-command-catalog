@@ -446,7 +446,7 @@ function renderCommandCatalogHtml(entries, generatedAt) {
     .map((e) => {
       return `
         <tr>
-          <td class="mono">${escapeHtml("/" + e.command)}</td>
+          <td><code class="mono">${escapeHtml("/" + e.command)}</code></td>
           <td>${escapeHtml(e.description ?? "")}</td>
           <td class="mono">${escapeHtml(e.path)}</td>
           <td class="mono">${escapeHtml(e.sourceRoot)}</td>
@@ -608,11 +608,19 @@ async function main() {
 
   const commandCatalogHtml = renderCommandCatalogHtml(commandEntries, generatedAt);
   const commandCatalogPath = path.join(projectRoot, "CommandCatalog.html");
-  await writeFile(commandCatalogPath, commandCatalogHtml, "utf8");
+  try {
+    await writeFile(commandCatalogPath, commandCatalogHtml, "utf8");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to write CommandCatalog.html at ${commandCatalogPath}: ${msg}`);
+  }
 
   process.stdout.write(
     [
       "SummarizeCommand report generated.",
+      `- CWD: ${projectRoot}`,
+      `- Script: ${new URL(import.meta.url).pathname}`,
+      process.env.CLAUDE_PLUGIN_ROOT ? `- CLAUDE_PLUGIN_ROOT: ${process.env.CLAUDE_PLUGIN_ROOT}` : "",
       `- HTML: ${htmlPath}`,
       `- llms.txt: ${llmsPath}`,
       `- llms-full.txt: ${llmsFullPath}`,

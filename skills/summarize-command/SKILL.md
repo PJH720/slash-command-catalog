@@ -13,3 +13,4 @@ This is a compatibility alias. Prefer:
 ```
 
 !command node "${CLAUDE_PLUGIN_ROOT}/scripts/scan_and_report.js"
+

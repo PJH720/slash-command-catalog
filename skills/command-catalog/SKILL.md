@@ -15,8 +15,9 @@ This skill scans a small set of known locations under the current project direct
 
 It writes these artifacts to the **current working directory**:
 
-- `summarize-report.html`
-- `llms.txt`
-- `llms-full.txt`
+- `report_for_llm/llm-full.html`
+- `report_for_llm/llms.txt`
+- `report_for_llm/llms-full.txt`
+- `CommandCatalog.html`
 
 !command node "${CLAUDE_PLUGIN_ROOT}/scripts/scan_and_report.js"
