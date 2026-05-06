@@ -20,6 +20,8 @@ coverage/
 # Local agent/editor state
 .cursor/
 .claude/
+CLAUDE.md
+AGENTS.md
 
 # Keep only the tracked install note under Ref/
 Ref/*
