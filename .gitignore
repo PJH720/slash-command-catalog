@@ -25,6 +25,7 @@ AGENTS.md
 
 # Generated reports (local artifacts)
 summarize-report.html
+llm-full.html
 llms.txt
 llms-full.txt
 CommandCatalog.html

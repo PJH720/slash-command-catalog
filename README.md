@@ -6,10 +6,14 @@ Generate a report of the slash commands you can actually use in your current env
 
 English | [简体中文](docs/i18n/README.zh-CN.md) | [繁體中文](docs/i18n/README.zh-TW.md) | [日本語](docs/i18n/README.ja.md) | [Español](docs/i18n/README.es.md) | [Français](docs/i18n/README.fr.md) | [Deutsch](docs/i18n/README.de.md) | [Português(BR)](docs/i18n/README.pt-BR.md) | [Italiano](docs/i18n/README.it.md) | [Türkçe](docs/i18n/README.tr.md) | [Bahasa Indonesia](docs/i18n/README.id.md) | [Tiếng Việt](docs/i18n/README.vi.md) | [ไทย](docs/i18n/README.th.md) | [Polski](docs/i18n/README.pl.md) | [Nederlands](docs/i18n/README.nl.md) | [Svenska](docs/i18n/README.sv.md) | [Русский](docs/i18n/README.ru.md) | [Українська](docs/i18n/README.uk.md) | [한국어](docs/i18n/README.ko.md) | [العربية](docs/i18n/README.ar.md) | [עברית](docs/i18n/README.he.md) | [हिन्दी](docs/i18n/README.hi.md)
 
-This plugin generates a small set of **stable artifacts** that you can skim as a human or feed to an agent:
+By default, it writes these files to the **current working directory**:
 
-- **Human-friendly**: `summarize-report.html` (single searchable page)
+- **Human-friendly**: `./CommandCatalog.html` (single searchable page)
+
+This plugin generates a small set of **stable artifacts** that you can feed to an agent:
+
 - **Agent-friendly**: `llms.txt` / `llms-full.txt` (no HTML parsing required)
+- **Translated-for-Human**: `llm-full.html`
 
 ## Install & run (Claude Code plugin)
 
@@ -37,12 +41,6 @@ Then run it:
 /command-catalog
 ```
 
-By default, it writes these files to the **current working directory**:
-
-- `./summarize-report.html`
-- `./llms.txt`
-- `./llms-full.txt`
-
 ## When to use it
 
 - You keep forgetting what `/commands` exist in a project.
@@ -61,3 +59,4 @@ By default, it writes these files to the **current working directory**:
 - The runner is **zero-install** (pure Node.js ESM) and can also be executed directly:
   - `node /absolute/path/to/scripts/scan_and_report.js`
 - If your Claude Code environment blocks command execution, you may need to approve the `node .../scan_and_report.js` command when prompted.
+

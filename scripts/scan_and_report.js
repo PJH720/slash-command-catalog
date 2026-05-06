@@ -15,10 +15,12 @@ import path from "node:path";
  */
 
 const OUTPUT_FILES = {
-  html: "summarize-report.html",
+  html: "llm-full.html",
   llms: "llms.txt",
   llmsFull: "llms-full.txt",
 };
+
+const LEGACY_LLM_HTML_FILENAMES = ["summarize-report.html"];
 
 function toIsoNow() {
   return new Date().toISOString();
@@ -433,6 +435,11 @@ function commandFromSkillPath(relPath) {
 }
 
 function renderCommandCatalogHtml(entries, generatedAt) {
+  const commandList = Array.from(new Set(entries.map((e) => `/${e.command}`))).sort((a, b) =>
+    a.localeCompare(b),
+  );
+  const commandListText = commandList.join("\n");
+
   const rows = entries
     .slice()
     .sort((a, b) => a.path.localeCompare(b.path))
@@ -443,6 +450,7 @@ function renderCommandCatalogHtml(entries, generatedAt) {
           <td>${escapeHtml(e.description ?? "")}</td>
           <td class="mono">${escapeHtml(e.path)}</td>
           <td class="mono">${escapeHtml(e.sourceRoot)}</td>
+          <td><button class="copyBtn" type="button" data-copy="${escapeHtml("/" + e.command)}">Copy</button></td>
         </tr>
       `;
     })
@@ -459,6 +467,10 @@ function renderCommandCatalogHtml(entries, generatedAt) {
       body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif; margin: 24px; }
       h1 { margin: 0 0 8px; font-size: 20px; }
       .muted { opacity: 0.75; font-size: 12px; margin-bottom: 16px; }
+      .toolbar { display: flex; align-items: center; gap: 10px; margin: 12px 0 16px; }
+      pre { margin: 0; padding: 12px; border: 1px solid rgba(127,127,127,0.35); border-radius: 8px; background: color-mix(in oklab, Canvas 92%, CanvasText 8%); overflow: auto; }
+      button { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(127,127,127,0.35); background: Canvas; cursor: pointer; }
+      button:active { transform: translateY(1px); }
       table { width: 100%; border-collapse: collapse; font-size: 13px; }
       th, td { text-align: left; border-bottom: 1px solid rgba(127,127,127,0.35); padding: 10px 8px; vertical-align: top; }
       th { position: sticky; top: 0; background: Canvas; }
@@ -469,6 +481,11 @@ function renderCommandCatalogHtml(entries, generatedAt) {
   <body>
     <h1>CommandCatalog</h1>
     <div class="muted">Generated: ${escapeHtml(generatedAt)} · Commands: ${entries.length}</div>
+    <div class="toolbar">
+      <button id="copyAllBtn" type="button">Copy all commands</button>
+      <span class="muted">One command per line</span>
+    </div>
+    <pre class="mono" id="commandBlock">${escapeHtml(commandListText)}</pre>
     <table>
       <thead>
         <tr>
@@ -476,12 +493,42 @@ function renderCommandCatalogHtml(entries, generatedAt) {
           <th>Description</th>
           <th>Path</th>
           <th>SourceRoot</th>
+          <th>Copy</th>
         </tr>
       </thead>
       <tbody>
         ${rows}
       </tbody>
     </table>
+    <script>
+      (function () {
+        function setTempLabel(btn, text) {
+          var prev = btn.textContent;
+          btn.textContent = text;
+          setTimeout(function () { btn.textContent = prev; }, 800);
+        }
+        async function copyText(text, btn) {
+          try {
+            await navigator.clipboard.writeText(text);
+            if (btn) setTempLabel(btn, "Copied");
+          } catch (e) {
+            if (btn) setTempLabel(btn, "Failed");
+          }
+        }
+        var block = document.getElementById("commandBlock");
+        var copyAllBtn = document.getElementById("copyAllBtn");
+        copyAllBtn.addEventListener("click", function () {
+          copyText(block.textContent, copyAllBtn);
+        });
+        document.addEventListener("click", function (ev) {
+          var target = ev.target;
+          if (!(target instanceof HTMLElement)) return;
+          if (!target.classList.contains("copyBtn")) return;
+          var val = target.getAttribute("data-copy") || "";
+          copyText(val, target);
+        });
+      })();
+    </script>
   </body>
 </html>`;
 }
@@ -513,6 +560,9 @@ async function main() {
 
   // Migrate any legacy files from project root into report_for_llm/.
   await moveIfExists(path.join(projectRoot, OUTPUT_FILES.html), llmDir, OUTPUT_FILES.html, "");
+  for (const legacy of LEGACY_LLM_HTML_FILENAMES) {
+    await moveIfExists(path.join(projectRoot, legacy), llmDir, legacy, "");
+  }
   await moveIfExists(path.join(projectRoot, OUTPUT_FILES.llms), llmDir, OUTPUT_FILES.llms, "");
   await moveIfExists(path.join(projectRoot, OUTPUT_FILES.llmsFull), llmDir, OUTPUT_FILES.llmsFull, "");
 
