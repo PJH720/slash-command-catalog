@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "summarize-command",
+  "name": "command-catalog",
   "version": "1.0.0",
-  "description": "Generate a report of available slash commands and MCP configuration in the current working directory."
+  "description": "Generate a catalog report of available slash commands and MCP configuration in the current working directory."
 }
 

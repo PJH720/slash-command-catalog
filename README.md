@@ -45,7 +45,7 @@ Install the plugin:
 Then run it:
 
 ```text
-/summarize-command
+/command-catalog
 ```
 
 By default, it writes these files to the **current working directory**:

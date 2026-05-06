@@ -15,7 +15,7 @@ Install:
 Run:
 
 ```text
-/summarize-command
+/command-catalog
 ```
 
 Outputs (written to the current working directory):

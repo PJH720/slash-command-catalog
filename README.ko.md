@@ -11,7 +11,7 @@ This plugin generates:
 
 ```text
 /plugin marketplace add PJH720/slash-command-catalog
-/summarize-command
+/command-catalog
 ```
 
 By default, it writes these files to the **current directory**:
