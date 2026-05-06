@@ -1,0 +1,26 @@
+{
+  "name": "summarize-command",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generate a report of available slash commands and related artifacts.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "summarize-command": "dist/cli/summarize-command.js"
+  },
+  "scripts": {
+    "dev": "tsx src/cli/summarize-command.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/cli/summarize-command.js",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}
+
